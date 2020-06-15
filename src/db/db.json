@@ -8,8 +8,30 @@
       "avatar": "http",
       "createdAt": 1571213104370,
       "id": "Z2hlvDmLOSRZGebC_Z_aA"
+    },
+    {
+      "email": "Andrew.sturick@gmail.com",
+      "password": "bball991231",
+      "role": "ADMIN",
+      "verified": false,
+      "avatar": "http",
+      "createdAt": 1591995865981,
+      "id": "-mimgKd_NTjbSMjwRDZqD"
     }
   ],
-  "posts": [],
+  "posts": [
+    {
+      "message": "fried chicken",
+      "author": "-mimgKd_NTjbSMjwRDZqD",
+      "createdAt": 1592000972342,
+      "id": "ogsKqtThSFfbqfCPYi2Bi"
+    },
+    {
+      "message": "fried chicken",
+      "author": "-mimgKd_NTjbSMjwRDZqD",
+      "createdAt": 1592001608444,
+      "id": "ItiSyrCtHeK9m4IUxI387"
+    }
+  ],
   "settings": []
 }

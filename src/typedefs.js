@@ -79,6 +79,10 @@ module.exports = gql`
     role: Role!
   }
 
+  type Item {
+    task: String!
+  }
+
   input SigninInput {
     email: String!
     password: String!
@@ -92,6 +96,11 @@ module.exports = gql`
     feed: [Post]!
   }
 
+  type Subscription {
+    newItem: Item
+    newPost: Post
+  }
+
   type Mutation {
     updateSettings(input: UpdateSettingsInput!): Settings!
     createPost(input: NewPostInput!): Post!
@@ -99,6 +108,7 @@ module.exports = gql`
     invite(input: InviteInput!): Invite!
     signup(input: SignupInput!): AuthUser!
     signin(input: SigninInput!): AuthUser!
+    createItem(task: String): Item!
   }
 
 `

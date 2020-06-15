@@ -1,6 +1,7 @@
 const {authenticated, authorized} = require('./auth')
 const NEW_POST = 'NEW_POST'
-
+const {PubSub} = require("apollo-server");
+const pubsub = new PubSub();
 /**
  * Anything Query / Mutation resolver
  * using a user for a DB query
@@ -8,43 +9,43 @@ const NEW_POST = 'NEW_POST'
  */
 module.exports = {
   Query: {
-    me(_, __, {user}){
+    me: authenticated((_, __, {user}) => {
       return user
-    },
-    posts(_, __, {user, models}) {
+    }),
+    posts: authenticated((_, __, {user, models}) => {
       return models.Post.findMany({author: user.id})
-    },
+    }),
 
-    post(_, {id}, {user, models}) {
+    post: authenticated((_, {id}, {user, models}) => {
       return models.Post.findOne({id, author: user.id})
-    },
+    }),
 
-    userSettings(_, __, {user, models}) {
+    userSettings: authenticated((_, __, {user, models}) => {
       return models.Settings.findOne({user: user.id})
-    },
+    }),
     // public resolver
-    feed(_, __, {models}) {
+    feed: authenticated((_, __, {models}) => {
       return models.Post.findMany()
-    }
+    })
   },
   Mutation: {
-    updateSettings(_, {input}, {user, models}) {
+    updateSettings: authenticated((_, {input}, {user, models}) => {
       return models.Settings.updateOne({user: user.id}, input)
-    },
+    }),
 
-    createPost(_, {input}, {user, models}) {
+    createPost: authenticated((_, {input}, {user, models}) => {
       const post = models.Post.createOne({...input, author: user.id})
       pubsub.publish(NEW_POST, { newPost: post })
       return post
-    },
+    }),
 
-    updateMe(_, {input}, {user, models}) {
+    updateMe: authenticated((_, {input}, {user, models}) => {
       return models.User.updateOne({id: user.id}, input)
-    },
+    }),
     // admin role
-    invite(_, {input}, {user}) {
+    invite: authorized("ADMIN", authenticated((_, {input}, {user}) => {
       return {from: user.id, role: input.role, createdAt: Date.now(), email: input.email}
-    },
+    })),
 
     signup(_, {input}, {models, createToken}) {
       const existing = models.User.findOne({email: input.email})
@@ -56,7 +57,7 @@ module.exports = {
       const token = createToken(user)
       return {token, user}
     },
-    signin(_, {input}, {models, createToken}) {
+    signin(_, {input}, {models, createToken}){
       const user = models.User.findOne(input)
 
       if (!user) {
@@ -65,6 +66,10 @@ module.exports = {
 
       const token = createToken(user)
       return {token, user}
+    },
+    createItem(_, {task}) {
+      pubsub.publish("NEW_ITEM", {newItem: {task}})
+      return {task};
     }
   },
   User: {
@@ -81,12 +86,27 @@ module.exports = {
   },
   Settings: {
     user(settings, _, {user, models}) {
-      return models.Settings.findOne({id: settings.id, user: user.id})
+      // return 5;
+      return models.User.findOne({id: settings.id, user: user.id})
     }
   },
   Post: {
     author(post, _, {models}) {
       return models.User.findOne({id: post.author})
+    }
+  },
+  Subscription: {
+    newItem: {
+      subscribe: (...args) => {
+        console.log(args)
+        return pubsub.asyncIterator("NEW_ITEM")
+      }
+    },
+    newPost: {
+      subscribe: authenticated((...args) => {
+        
+        return pubsub.asyncIterator("NEW_POST")
+      })
     }
   }
 }
